@@ -1,9 +1,6 @@
 import ply.lex as lex
 import ply.yacc as yacc
-
-# Global variable to track syntax correctness
 syntax_correct = True
-
 # Lexer
 tokens = (
     'ID',
@@ -143,9 +140,9 @@ lexer = lex.lex()
 parser = yacc.yacc()
 
 # Example input
-input_code = """while (x > 0) 
-    x = x - 1;
-end
+input_code = """whle x > 0) 
+    x =  x - 1;
+ed
 """
 
 lexer.input(input_code)

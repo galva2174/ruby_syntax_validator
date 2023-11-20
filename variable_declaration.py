@@ -45,7 +45,7 @@ def p_error(p):
     if p:
         print(f"Syntax error at line {p.lineno}, position {find_column(p.lexer.lexdata, p)}: Unexpected token '{p.value}'")
     else:
-        print("Syntax error: unexpected end of input")
+        print("Syntax error")
 
 def find_column(lexer_input, token):
     last_cr = lexer_input.rfind('\n', 0, token.lexpos)
@@ -57,7 +57,7 @@ def find_column(lexer_input, token):
 parser = yacc.yacc()
 
 # Test the parser
-code = input("Enter code:")
+code = input("Enter variable declaration:")
 lexer.input(code)
 while True:
     tok = lexer.token()

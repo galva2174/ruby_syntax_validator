@@ -1,7 +1,6 @@
 import ply.lex as lex
 import ply.yacc as yacc
 syntax_correct = True
-# Lexer
 tokens = [
     'CASE',
     'WHEN',
@@ -21,9 +20,8 @@ tokens = [
     'LE',
     'GT',
     'GE',
+    'ASSIGN'
 ]
-
-
 t_IDENTIFIER = r'[a-zA-Z_"][a-zA-Z0-9_"]*'  # Updated regular expression
 t_COLON = r':'
 t_NUMBER = r'\d+'
@@ -39,21 +37,18 @@ t_LT = r'<'
 t_LE = r'<='
 t_GT = r'>'
 t_GE = r'>='
-
+t_ASSIGN = r'='
 t_ignore = ' \t\n'
-
 # Special case handling for CASE and END
 def t_CASE(t):
     r'case'
     return t
-
 def t_END(t):
     r'end'
     return t
 def t_WHEN(t):
     r'when'
     return t
-
 # Parser
 def p_switch_statement(p):
     '''
@@ -79,9 +74,14 @@ def p_statements(p):
 
 def p_statement(p):
     '''
-    statement : expression
+    statement : assignment_statement
+                | empty
+             
     '''
-
+def p_assignment_statement(p):
+    '''
+    assignment_statement : IDENTIFIER ASSIGN expression
+    '''
 def p_expression(p):
     '''
     expression : NUMBER
@@ -108,18 +108,19 @@ def p_error(p):
     global syntax_correct
     syntax_correct = False
     print(f"Syntax error at line {p.lineno}, Unexpected token '{p.value}'")
+    exit(0)
 # Build the lexer and parser
 lexer = lex.lex()
 parser = yacc.yacc()
 
 # Test the parser with a Ruby switch case statement
 ruby_code = """
-case x:
-  when 1:
-    a
-  when 2:
-    b
-end
+cse x:
+  when :
+    a=b
+  whe 2:
+    b=c
+ed
 """
 
 lexer.input(ruby_code)

@@ -1,38 +1,30 @@
-from ply import lex, yacc
+import ply.lex as lex
+import ply.yacc as yacc
 
-# Lexer
-
+# Lexer tokens
 tokens = (
-    'IDENTIFIER',
-    'EQUALS',
+    'VALUE',
+    'COLON',
+    'COMMA',
     'LBRACE',
     'RBRACE',
-    'COMMA',
-    'COLON',
-    'STRING',
-    'NUMBER',
+    'VARIABLE',
+    'IDENTIFIER',
+    'EQUAL'
 )
 
-t_EQUALS = r'='
-t_LBRACE = r'\{'
-t_RBRACE = r'\}'
-t_COMMA = r','
+# Lexer rules
 t_COLON = r':'
+t_COMMA = r','
+t_LBRACE = r'{'
+t_RBRACE = r'}'
+t_EQUAL = r'='
 
-def t_STRING(t):
-    r'\"([^\\\n]|(\\.))*?\"'
-    t.value = t.value[1:-1]
+def t_VALUE(t):
+    r'".*"'
     return t
 
-def t_NUMBER(t):
-    r'\d+'
-    t.value = int(t.value)
-    return t
-
-def t_IDENTIFIER(t):
-    r'[a-zA-Z_][a-zA-Z0-9_]*'
-    t.type = 'IDENTIFIER'
-    return t
+t_IDENTIFIER = r'[a-zA-Z_"][a-zA-Z0-9_"]*'
 
 t_ignore = ' \t\n'
 
@@ -40,69 +32,42 @@ def t_error(t):
     print(f"Illegal character '{t.value[0]}'")
     t.lexer.skip(1)
 
-lexer = lex.lex()
-
-# Parser
-
-def p_set_dict_assignment(p):
-    '''
-    set_dict_assignment : IDENTIFIER EQUALS set
-                       | IDENTIFIER EQUALS dictionary
-    '''
-    p[0] = {'name': p[1], 'type': p[3]['type'], 'value': p[3]}
-
-def p_set(p):
-    'set : LBRACE elements RBRACE'
-    p[0] = {'type': 'set', 'elements': p[2]}
-
-def p_dictionary(p):
-    'dictionary : LBRACE key_value_pairs RBRACE'
-    p[0] = {'type': 'dictionary', 'key_value_pairs': p[2]}
-
-def p_elements(p):
-    '''
-    elements : elements COMMA element
-             | element
-    '''
-    if len(p) == 2:
-        p[0] = [p[1]]
-    else:
-        p[0] = p[1] + [p[3]]
-
-def p_element(p):
-    '''
-    element : NUMBER
-            | STRING
-    '''
-    p[0] = p[1]
+# Parser rules
+def p_hash(p):
+    '''hash : IDENTIFIER EQUAL LBRACE key_value_pairs RBRACE'''
+    print(f"Valid syntax: {p[1]}")
 
 def p_key_value_pairs(p):
-    '''
-    key_value_pairs : key_value_pairs COMMA key_value_pair
-                   | key_value_pair
-    '''
-    if len(p) == 2:
-        p[0] = [p[1]]
-    else:
-        p[0] = p[1] + [p[3]]
+    '''key_value_pairs : key_value_pairs COMMA key_value_pair
+                      | key_value_pair
+                      | empty'''
 
 def p_key_value_pair(p):
-    'key_value_pair : IDENTIFIER COLON element'
-    p[0] = {'key': p[1], 'value': p[3]}
+    '''key_value_pair : IDENTIFIER COLON VALUE
+                        | empty'''
+
+def p_empty(p):
+    '''
+    empty :
+    '''
 
 def p_error(p):
-    print("Syntax error")
+    raise SyntaxError(f"Invalid syntax at line {p.lineno}, position {p.lexpos}, token {p.type}: {p.value}")
 
+# Build the lexer and parser
+lexer = lex.lex()
 parser = yacc.yacc()
 
-# Example usage
+# Test input string
+input_string = 'my_hash =  key1: "value1", key2: "value2" key3: "value3" }'
 
-while True:
-    try:
-        s = input('Enter set/dictionary assignment syntax: ')
-    except EOFError:
-        break
-    if not s:
-        continue
-    result = parser.parse(s)
-    print(f'Syntax Validated: {result}')
+# Test the lexer and parser
+lexer.input(input_string)
+for token in lexer: 
+    print(token)
+
+try:
+    parser.parse(input_string, lexer=lexer)
+    print("Parsing successful")
+except SyntaxError as e:
+    print(e)
